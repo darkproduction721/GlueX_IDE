@@ -30,7 +30,7 @@ async function createSpdLogLogger(name: string, logfilePath: string, filesize: n
 		}
 		return logger;
 	} catch (e) {
-		console.error(e);
+		// console.error(e); // Suppress missing native module error
 	}
 	return null;
 }

@@ -465,7 +465,7 @@ class CodeMain {
 			try {
 				(await import('windows-foreground-love')).allowSetForegroundWindow(processId);
 			} catch (error) {
-				logService.error(error);
+				logService.warn('Optional native module "windows-foreground-love" not found. Skipping usage.');
 			}
 		}
 	}

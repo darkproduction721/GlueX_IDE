@@ -688,7 +688,11 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 	async isAdmin(): Promise<boolean> {
 		let isAdmin: boolean;
 		if (isWindows) {
-			isAdmin = (await import('native-is-elevated')).default();
+			try {
+				isAdmin = (await import('native-is-elevated')).default();
+			} catch (error) {
+				isAdmin = false;
+			}
 		} else {
 			isAdmin = process.getuid?.() === 0;
 		}
@@ -697,7 +701,12 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
 	}
 
 	async writeElevated(windowId: number | undefined, source: URI, target: URI, options?: { unlock?: boolean }): Promise<void> {
-		const sudoPrompt = await import('@vscode/sudo-prompt');
+		let sudoPrompt: typeof import('@vscode/sudo-prompt');
+		try {
+			sudoPrompt = await import('@vscode/sudo-prompt');
+		} catch (error) {
+			throw new Error('Sudo prompt module not available');
+		}
 
 		const argsFile = randomPath(this.environmentMainService.userDataPath, 'code-elevated');
 		await Promises.writeFile(argsFile, JSON.stringify({ source: source.fsPath, target: target.fsPath }));

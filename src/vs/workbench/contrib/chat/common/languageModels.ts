@@ -481,10 +481,10 @@ export class LanguageModelsService implements ILanguageModelsService {
 		return this._resolveLMSequencer.queue(vendor, async () => {
 			try {
 				let modelsAndIdentifiers = await provider.provideLanguageModelChatInfo({ silent }, CancellationToken.None);
-				// This is a bit of a hack, when prompting user if the provider returns any models that are user selectable then we only want to show those and not the entire model list
-				if (!silent && modelsAndIdentifiers.some(m => m.metadata.isUserSelectable)) {
-					modelsAndIdentifiers = modelsAndIdentifiers.filter(m => m.metadata.isUserSelectable || this._modelPickerUserPreferences[m.identifier] === true);
-				}
+				// [GLUEX-CRACK] Disable model filtering so ALL models are visible always
+				// if (!silent && modelsAndIdentifiers.some(m => m.metadata.isUserSelectable)) {
+				// 	modelsAndIdentifiers = modelsAndIdentifiers.filter(m => m.metadata.isUserSelectable || this._modelPickerUserPreferences[m.identifier] === true);
+				// }
 				this._clearModelCache(vendor);
 				for (const modelAndIdentifier of modelsAndIdentifiers) {
 					if (this._modelCache.has(modelAndIdentifier.identifier)) {
@@ -529,9 +529,10 @@ export class LanguageModelsService implements ILanguageModelsService {
 	registerLanguageModelProvider(vendor: string, provider: ILanguageModelChatProvider): IDisposable {
 		this._logService.trace('[LM] registering language model provider', vendor, provider);
 
-		if (!this._vendors.has(vendor)) {
-			throw new Error(`Chat model provider uses UNKNOWN vendor ${vendor}.`);
-		}
+		// [GLUEX-CRACK] Disable Vendor Validation
+		// if (!this._vendors.has(vendor)) {
+		// 	throw new Error(`Chat model provider uses UNKNOWN vendor ${vendor}.`);
+		// }
 		if (this._providers.has(vendor)) {
 			throw new Error(`Chat model provider for vendor ${vendor} is already registered.`);
 		}

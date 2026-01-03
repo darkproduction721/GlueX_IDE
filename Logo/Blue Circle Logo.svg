@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Blue Circle Logo</title>
+  <desc id="desc">Stylized circular logo with four node circles connected by diagonal lines.</desc>
+
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00e6ff"/>
+      <stop offset="100%" stop-color="#00a3ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer ring -->
+  <g fill="none" stroke="url(#accent)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="200"/>
+  </g>
+
+  <!-- Inner motif: X + four nodes, uniformly scaled around center (non-scaling stroke) -->
+  <g fill="none" stroke="url(#accent)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"
+     transform="translate(256 256) scale(0.90) translate(-256 -256)">
+    <!-- Diagonal connectors (X) -->
+    <line x1="181.971" y1="181.971" x2="330.029" y2="330.029" vector-effect="non-scaling-stroke"/>
+    <line x1="330.029" y1="181.971" x2="181.971" y2="330.029" vector-effect="non-scaling-stroke"/>
+
+    <!-- Node circles -->
+    <circle cx="156" cy="156" r="36" vector-effect="non-scaling-stroke"/>
+    <circle cx="356" cy="156" r="36" vector-effect="non-scaling-stroke"/>
+    <circle cx="156" cy="356" r="36" vector-effect="non-scaling-stroke"/>
+    <circle cx="356" cy="356" r="36" vector-effect="non-scaling-stroke"/>
+  </g>
+</svg>

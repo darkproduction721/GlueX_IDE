@@ -1,5 +1,5 @@
 {
-  "name": "code-oss-dev",
+  "name": "gluex",
   "version": "1.108.0",
   "distro": "1133c0369c2db6f38f7f0e99737dc4770d393748",
   "author": {
@@ -111,6 +111,7 @@
     "node-pty": "^1.1.0-beta43",
     "open": "^10.1.2",
     "tas-client": "0.3.1",
+    "ternary-stream": "^3.0.0",
     "undici": "^7.9.0",
     "v8-inspect-profiler": "^0.1.1",
     "vscode-oniguruma": "1.7.0",
@@ -178,6 +179,7 @@
     "gulp-gunzip": "^1.0.0",
     "gulp-gzip": "^1.4.2",
     "gulp-json-editor": "^2.5.0",
+    "gulp-merge-json": "^2.2.1",
     "gulp-plumber": "^1.2.0",
     "gulp-rename": "^1.2.0",
     "gulp-replace": "^0.5.4",
@@ -191,6 +193,7 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-lib-source-maps": "^4.0.1",
     "istanbul-reports": "^3.1.5",
+    "jsonc-parser": "^3.3.1",
     "lazy.js": "^0.4.2",
     "merge-options": "^1.0.1",
     "mime": "^1.4.1",

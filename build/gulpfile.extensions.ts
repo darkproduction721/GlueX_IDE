@@ -72,8 +72,10 @@ const compilations = [
 	'extensions/vscode-colorize-perf-tests/tsconfig.json',
 	'extensions/vscode-test-resolver/tsconfig.json',
 
+
 	'.vscode/extensions/vscode-selfhost-test-provider/tsconfig.json',
 	'.vscode/extensions/vscode-selfhost-import-aid/tsconfig.json',
+	'extensions/gluex-ai/tsconfig.json',
 ];
 
 const getBaseUrl = (out: string) => `https://main.vscode-cdn.net/sourcemaps/${commit}/${out}`;

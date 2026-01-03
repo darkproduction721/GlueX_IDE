@@ -351,8 +351,8 @@ export async function scanTestOutput(
 		if (coverageDir) {
 			try {
 				await istanbulCoverageContext.apply(task, coverageDir, {
-					mapFileUri: uri => store.getSourceFile(uri.toString()),
-					mapLocation: (uri, position) =>
+					mapFileUri: (uri: any) => store.getSourceFile(uri.toString()),
+					mapLocation: (uri: any, position: any) =>
 						store.getSourceLocation(uri.toString(), position.line, position.character),
 				});
 			} catch (e) {

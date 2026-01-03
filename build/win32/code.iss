@@ -15,7 +15,7 @@ AppUpdatesURL=https://code.visualstudio.com/
 DefaultGroupName={#NameLong}
 AllowNoIcons=yes
 OutputDir={#OutputDir}
-OutputBaseFilename=VSCodeSetup
+OutputBaseFilename=GlueX_setup
 Compression=lzma
 SolidCompression=yes
 AppMutex={code:GetAppMutex}
@@ -92,7 +92,7 @@ Name: "{app}"; AfterInstall: DisableAppDirInheritance
 
 [Files]
 Source: "*"; Excludes: "\CodeSignSummary*.md,\tools,\tools\*,\appx,\appx\*,\resources\app\product.json"; DestDir: "{code:GetDestDir}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "tools\*"; DestDir: "{app}\tools"; Flags: ignoreversion
+; Source: "tools\*"; DestDir: "{app}\tools"; Flags: ignoreversion
 Source: "{#ProductJsonPath}"; DestDir: "{code:GetDestDir}\resources\app"; Flags: ignoreversion
 #ifdef AppxPackageName
 #if "user" == InstallTarget
@@ -1526,6 +1526,53 @@ begin
 end;
 #endif
 
+
+function OnDownloadProgress(const Url, FileName: String; const BytesDownloaded, BytesTotal: Int64): Boolean;
+begin
+  Result := True;
+end;
+
+procedure SetupOllama();
+var
+  ResultCode: Integer;
+  DownloadPage: TDownloadWizardPage;
+begin
+  // Check common paths for Ollama
+  if FileExists(ExpandConstant('{localappdata}\Programs\Ollama\ollama.exe')) or FileExists(ExpandConstant('{commonpf}\Ollama\ollama.exe')) then
+  begin
+    Log('Ollama appears to be installed.');
+  end
+  else
+  begin
+    if MsgBox('Vibe Coding requires Ollama for local AI. do you want to download and install it now?', mbConfirmation, MB_YESNO) = IDYES then
+    begin
+        DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), 'Installing Ollama...', @OnDownloadProgress);
+        DownloadPage.Clear;
+        DownloadPage.Add('https://ollama.com/download/OllamaSetup.exe', 'OllamaSetup.exe', '');
+        DownloadPage.Show;
+        try
+          try
+            DownloadPage.Download;
+            Log('Ollama Setup downloaded.');
+            // Run it silently
+            ShellExec('', ExpandConstant('{tmp}\OllamaSetup.exe'), '/silent', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+          except
+            MsgBox('Failed to download/install Ollama: ' + GetExceptionMessage, mbError, MB_OK);
+          end;
+        finally
+          DownloadPage.Hide;
+        end;
+    end;
+  end;
+
+  // Pull the model (Run in background or visible console)
+  if MsgBox('Do you want to pull the default AI model (deepseek-coder:7b) now? This may take some time.', mbConfirmation, MB_YESNO) = IDYES then
+  begin
+     // We assume ollama command is now available in PATH or at known location.
+     ShellExec('', ExpandConstant('{localappdata}\Programs\Ollama\ollama.exe'), 'run deepseek-coder:7b', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   UpdateResultCode: Integer;
@@ -1533,6 +1580,7 @@ var
 begin
   if CurStep = ssPostInstall then
   begin
+    SetupOllama();
 #ifdef AppxPackageName
     // Remove the old context menu registry keys for insiders
     if QualityIsInsiders() and WizardIsTaskSelected('addcontextmenufiles') then begin

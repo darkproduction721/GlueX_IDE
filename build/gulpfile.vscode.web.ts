@@ -166,7 +166,12 @@ function packageTask(sourceFolderName: string, destinationFolderName: string) {
 		const license = gulp.src(['remote/LICENSE'], { base: 'remote', allowEmpty: true });
 
 		const productionDependencies = getProductionDependencies(WEB_FOLDER);
-		const dependenciesSrc = productionDependencies.map(d => path.relative(REPO_ROOT, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`, `!${d}/.bin/**`]).flat();
+		console.log('REPO_ROOT:', REPO_ROOT);
+		console.log('productionDependencies count:', productionDependencies.length);
+		const relativeDeps = productionDependencies.map(d => path.relative(REPO_ROOT, d));
+		console.log('Relative deps sample:', relativeDeps.slice(0, 3));
+		const dependenciesSrc = relativeDeps.map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`, `!${d}/.bin/**`]).flat().map(s => s.replace(/\\/g, '/'));
+		console.log('dependenciesSrc sample:', dependenciesSrc.slice(0, 3));
 
 		const deps = gulp.src(dependenciesSrc, { base: 'remote/web', dot: true })
 			.pipe(filter(['**', '!**/package-lock.json']))
@@ -224,4 +229,23 @@ const dashed = (str: string) => (str ? `-${str}` : ``);
 		vscodeWebTaskCI
 	));
 	gulp.task(vscodeWebTask);
+});
+
+gulp.task('debug-package', () => {
+	const productionDependencies = getProductionDependencies(WEB_FOLDER);
+	console.log('DEBUG: REPO_ROOT:', REPO_ROOT);
+	console.log('DEBUG: productionDependencies length:', productionDependencies.length);
+
+	const relativeDeps = productionDependencies.map(d => path.relative(REPO_ROOT, d));
+	// Check for potential circular/empty paths
+	const empty = relativeDeps.filter(d => !d);
+	if (empty.length) console.log('DEBUG: Found empty relative paths!');
+
+	const dependenciesSrc = relativeDeps.map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`, `!${d}/.bin/**`]).flat().map(s => s.replace(/\\/g, '/'));
+	console.log('DEBUG: dependenciesSrc[0]:', dependenciesSrc[0]);
+
+	// Try to create the stream to trigger validation error
+	return gulp.src(dependenciesSrc, { base: 'remote/web', dot: true })
+		.pipe(filter(['**', '!**/package-lock.json']))
+		.pipe(util.cleanNodeModules(path.join(import.meta.dirname, '.webignore')));
 });
