@@ -207,7 +207,7 @@ async function activate(context) {
 
 						// INJECT ABSOLUTE PATH
 						if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-							const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+							var rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 							contextMsg += `\n[ACTIVE WORKSPACE PATH: ${rootPath}]\n`;
 							log("Injecting workspace path: " + rootPath);
 						}
