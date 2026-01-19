@@ -1,81 +1,81 @@
 {
-    "name": "gluex-ai",
-    "displayName": "GlueX AI",
-    "description": "GlueX AI Assistant (Ollama)",
-    "version": "0.0.1",
-    "publisher": "gluex",
-    "engines": {
-        "vscode": "^1.90.0"
-    },
-    "enabledApiProposals": [
-        "chatProvider",
-        "chatParticipantAdditions",
-        "chatParticipantPrivate",
-        "languageModel",
-        "defaultChatParticipant"
+  "name": "gluex-ai",
+  "displayName": "GlueX AI",
+  "description": "GlueX AI Assistant (Ollama)",
+  "version": "0.0.2",
+  "publisher": "gluex",
+  "icon": "media/gluex.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "enabledApiProposals": [
+    "chatProvider",
+    "chatParticipantAdditions",
+    "chatParticipantPrivate",
+    "defaultChatParticipant"
+  ],
+  "activationEvents": [
+    "onChatParticipant:gluex.chat",
+    "onLanguageModelChatProvider:gluex-local"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "gluex.chat",
+        "name": "gluex",
+        "fullName": "GlueX AI",
+        "description": "GlueX AI Assistant (Ollama)",
+        "isSticky": true
+      }
     ],
-    "activationEvents": [
-        "onChatParticipant:gluex.chat",
-        "onLanguageModelChatProvider:gluex-local",
-        "*"
+    "languageModelChatProviders": [
+      {
+        "vendor": "gluex-local",
+        "displayName": "GlueX AI (Ollama)"
+      }
     ],
-    "main": "./src/extension.js",
-    "contributes": {
-        "chatParticipants": [
-            {
-                "id": "gluex.chat",
-                "name": "gluex",
-                "fullName": "GlueX AI",
-                "description": "GlueX AI Assistant (Ollama)",
-                "isSticky": true
-            }
-        ],
-        "languageModelChatProviders": [
-            {
-                "vendor": "gluex-local",
-                "displayName": "GlueX AI (Ollama)"
-            }
-        ],
-        "languageModels": [
-            {
-                "vendor": "gluex-local",
-                "id": "deepseek-coder",
-                "name": "DeepSeek Coder",
-                "family": "gpt-3.5",
-                "version": "1.0"
-            }
-        ],
-        "viewsContainers": {
-            "activitybar": [
-                {
-                    "id": "gluex-ai-container",
-                    "title": "GlueX AI",
-                    "icon": "$(hubot)"
-                }
-            ]
-        },
-        "views": {
-            "gluex-ai-container": [
-                {
-                    "id": "gluex.ai.chatView",
-                    "name": "Vibe Coding"
-                }
-            ]
-        },
-        "configuration": {
-            "title": "GlueX AI",
-            "properties": {
-                "gluex.ai.localUrl": {
-                    "type": "string",
-                    "default": "http://localhost:11434",
-                    "description": "URL for Local Provider (Ollama)"
-                },
-                "gluex.ai.model": {
-                    "type": "string",
-                    "default": "deepseek-coder",
-                    "description": "Model name to use with Ollama"
-                }
-            }
+    "languageModels": [
+      {
+        "vendor": "gluex-local",
+        "id": "deepseek-coder",
+        "name": "DeepSeek Coder",
+        "family": "gpt-3.5",
+        "version": "1.0"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gluex-ai-container",
+          "title": "GlueX AI",
+          "icon": "$(hubot)"
         }
+      ]
+    },
+    "views": {
+      "gluex-ai-container": [
+        {
+          "id": "gluex.ai.chatView",
+          "name": "Vibe Coding",
+          "icon": "$(hubot)"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "GlueX AI",
+      "properties": {
+        "gluex.ai.localUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "URL for Local Provider (Ollama)"
+        },
+        "gluex.ai.model": {
+          "type": "string",
+          "default": "deepseek-coder",
+          "description": "Model name to use with Ollama"
+        }
+      }
     }
+  }
 }

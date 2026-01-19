@@ -480,7 +480,7 @@ export class LanguageModelsService implements ILanguageModelsService {
 		}
 		return this._resolveLMSequencer.queue(vendor, async () => {
 			try {
-				let modelsAndIdentifiers = await provider.provideLanguageModelChatInfo({ silent }, CancellationToken.None);
+				const modelsAndIdentifiers = await provider.provideLanguageModelChatInfo({ silent }, CancellationToken.None);
 				// [GLUEX-CRACK] Disable model filtering so ALL models are visible always
 				// if (!silent && modelsAndIdentifiers.some(m => m.metadata.isUserSelectable)) {
 				// 	modelsAndIdentifiers = modelsAndIdentifiers.filter(m => m.metadata.isUserSelectable || this._modelPickerUserPreferences[m.identifier] === true);
