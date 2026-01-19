@@ -261,7 +261,7 @@ async function activate(context) {
 					const ollamaMessages = [];
 
 					// System Prompt / Context Injection
-					let systemPrompt = "You are GlueX, an intelligent and concise coding assistant inside VS Code. \n\nPROCESS:\n1. ANALYZE the user's request.\n2. PLAN your answer internally.\n3. PROVIDE the solution.\n\nOUTPUT RULES:\n- Be extremely CONCISE.\n- Use bullet points for steps or lists.\n- Avoid unnecessary fluff (e.g. 'I am here to help', 'Based on context').\n- Directly answer the question.\n\nYou can read files and folders provided in the Context Information below. DO NOT say you cannot access files or the workspace. Always answer based on the provided context.";
+					let systemPrompt = "You are GlueX, an intelligent and concise coding assistant inside VS Code. \n\nCAPABILITIES:\n- You CAN read files and folders provided in the CONTEXT INFORMATION below.\n- You CAN access the workspace structure via the provided list.\n- DO NOT claim you cannot access files. They are provided to you.\n\nPROCESS:\n1. ANALYZE the user's request.\n2. CHECK the provided CONTEXT INFORMATION for relevant files.\n3. PLAN your answer internally.\n4. PROVIDE the solution.\n\nOUTPUT RULES:\n- Be extremely CONCISE.\n- Use bullet points for steps or lists.\n- Avoid unnecessary fluff.\n- Directly answer the question.";
 					if (contextMsg) {
 						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nI have provided you with a list of files in the current workspace above [WORKSPACE FILE LIST] and the content of the active file. Use this context to answer the user's request. If the user asks what is in the folder, list the files from [WORKSPACE FILE LIST].";
 						log("Context injected into System Prompt. Size: " + contextMsg.length);
