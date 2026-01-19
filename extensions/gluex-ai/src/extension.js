@@ -213,13 +213,41 @@ async function activate(context) {
 						}
 
 						try {
-							// Increase limit to 1000 files for better coverage
+							// Primary: Try vscode.workspace.findFiles
 							const files = await vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
-							log(`Found ${files.length} files.`);
+							log(`Found ${files.length} files via findFiles.`);
 							const fileList = files.map(f => vscode.workspace.asRelativePath(f)).join("\n");
 							contextMsg += `\n[WORKSPACE FILE LIST]\n${fileList}\n`;
 						} catch (err) {
-							log("Error finding files: " + err);
+							log("Error finding files with VS Code API: " + err + ". Falling back to fs.");
+							// Fallback: Node.js recursive read
+							if (rootPath) {
+								try {
+									const getAllFiles = (dirPath, arrayOfFiles) => {
+										const files = fs.readdirSync(dirPath);
+										arrayOfFiles = arrayOfFiles || [];
+										files.forEach((file) => {
+											if (fs.statSync(dirPath + "/" + file).isDirectory()) {
+												if (file !== "node_modules" && file !== ".git") {
+													arrayOfFiles = getAllFiles(dirPath + "/" + file, arrayOfFiles);
+												}
+											} else {
+												arrayOfFiles.push(path.join(dirPath, "/", file));
+											}
+										});
+										return arrayOfFiles;
+									};
+
+									const allFiles = getAllFiles(rootPath);
+									// Limit to 1000 files
+									const limitedFiles = allFiles.slice(0, 1000);
+									const relativeFiles = limitedFiles.map(f => path.relative(rootPath, f));
+									contextMsg += `\n[WORKSPACE FILE LIST (Fallback)]\n${relativeFiles.join("\n")}\n`;
+									log(`Found ${limitedFiles.length} files via fs fallback.`);
+								} catch (fsErr) {
+									log("Error with fs fallback: " + fsErr);
+								}
+							}
 						}
 					} else {
 						log("No keyword match.");
