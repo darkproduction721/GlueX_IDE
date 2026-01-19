@@ -160,6 +160,12 @@ async function activate(context) {
 				try {
 					stream.progress("Gathering Context...");
 
+					const lowerPrompt = request.prompt.trim().toLowerCase();
+					if (lowerPrompt === "hi" || lowerPrompt === "hello") {
+						stream.markdown("Hi, how can i help you today?");
+						return;
+					}
+
 					// --- CONTEXT GATHERING START ---
 					let contextMsg = "";
 
@@ -168,7 +174,7 @@ async function activate(context) {
 					if (activeEditor && activeEditor.document.uri.scheme === "file") {
 						const content = activeEditor.document.getText();
 						// Limit explicit active file size
-						const truncated = content.length > 10000 ? content.substring(0, 10000) + "\n...[TRUNCATED]..." : content;
+						const truncated = content.length > 20000 ? content.substring(0, 20000) + "\n...[TRUNCATED]..." : content;
 						contextMsg += `\n[ACTIVE FILE: ${path.basename(activeEditor.document.fileName)}]\n\`\`\`\n${truncated}\n\`\`\`\n`;
 					}
 
@@ -181,7 +187,7 @@ async function activate(context) {
 									const doc = await vscode.workspace.openTextDocument(uri);
 									const content = doc.getText();
 									// Limit reference size
-									const truncated = content.length > 10000 ? content.substring(0, 10000) + "\n...[TRUNCATED]..." : content;
+									const truncated = content.length > 20000 ? content.substring(0, 20000) + "\n...[TRUNCATED]..." : content;
 									contextMsg += `\n[REFERENCE: ${path.basename(uri.fsPath)}]\n\`\`\`\n${truncated}\n\`\`\`\n`;
 								} catch (e) {
 									log(`Failed to read reference ${uri}: ${e}`);
@@ -190,13 +196,12 @@ async function activate(context) {
 						}
 					}
 
-					// 3. Workspace Structure (Triggered by broad keywords)
-					const promptLower = request.prompt.toLowerCase();
-					const accessKeywords = ["folder", "project", "workspace", "files", "structure", "read", "see", "what"];
+					// 3. Workspace Structure (Triggered by broad keywords OR implicit "run" requests)
+					const accessKeywords = ["folder", "project", "workspace", "files", "structure", "read", "see", "what", "run", "code", "app", "context"];
 
-					log(`Check keywords for: "${promptLower}"`);
+					log(`Check keywords for: "${lowerPrompt}"`);
 					// If any keyword is present, scan the workspace.
-					if (accessKeywords.some(k => promptLower.includes(k))) {
+					if (accessKeywords.some(k => lowerPrompt.includes(k))) {
 						log("Keyword match! Scanning workspace...");
 						stream.progress("Scanning Workspace...");
 
@@ -205,21 +210,21 @@ async function activate(context) {
 							const rootPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 							contextMsg += `\n[ACTIVE WORKSPACE PATH: ${rootPath}]\n`;
 							log("Injecting workspace path: " + rootPath);
-						} else {
-							log("No workspace folders found.");
 						}
 
 						try {
-							const files = await vscode.workspace.findFiles("**/*", "**/node_modules/**", 500); // Limit to 500 files
+							// Increase limit to 1000 files for better coverage
+							const files = await vscode.workspace.findFiles("**/*", "**/node_modules/**", 1000);
 							log(`Found ${files.length} files.`);
 							const fileList = files.map(f => vscode.workspace.asRelativePath(f)).join("\n");
-							contextMsg += `\n[WORKSPACE FILES]\n${fileList}\n`;
+							contextMsg += `\n[WORKSPACE FILE LIST]\n${fileList}\n`;
 						} catch (err) {
 							log("Error finding files: " + err);
 						}
 					} else {
 						log("No keyword match.");
 					}
+					// --- CONTEXT GATHERING END ---
 					// --- CONTEXT GATHERING END ---
 
 					stream.progress("Connecting to Brain...");
@@ -228,9 +233,9 @@ async function activate(context) {
 					const ollamaMessages = [];
 
 					// System Prompt / Context Injection
-					let systemPrompt = "You are GlueX, an intelligent coding assistant inside VS Code. You can read files and folders provided in the Context Information. DO NOT say you cannot access files. Always answer based on the provided context.";
+					let systemPrompt = "You are GlueX, an intelligent coding assistant inside VS Code. You can read files and folders provided in the Context Information below. DO NOT say you cannot access files or the workspace. Always answer based on the provided context.";
 					if (contextMsg) {
-						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nUse the above context to answer the user's request. If the user asks what is in the folder, list the files from [WORKSPACE FILES].";
+						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nI have provided you with a list of files in the current workspace above [WORKSPACE FILE LIST] and the content of the active file. Use this context to answer the user's request. If the user asks what is in the folder, list the files from [WORKSPACE FILE LIST].";
 						log("Context injected into System Prompt. Size: " + contextMsg.length);
 					}
 					ollamaMessages.push({ role: "system", content: systemPrompt });
