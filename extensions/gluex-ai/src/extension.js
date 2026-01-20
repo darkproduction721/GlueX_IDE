@@ -261,9 +261,9 @@ async function activate(context) {
 					const ollamaMessages = [];
 
 					// System Prompt / Context Injection
-					let systemPrompt = "You are GlueX, an intelligent and concise coding assistant inside VS Code. \n\nCAPABILITIES:\n- You CAN read files and folders provided in the CONTEXT INFORMATION below.\n- You CAN access the workspace structure via the provided list.\n- DO NOT claim you cannot access files. They are provided to you.\n\nPROCESS:\n1. ANALYZE the user's request.\n2. CHECK the provided CONTEXT INFORMATION for relevant files.\n3. PLAN your answer internally.\n4. PROVIDE the solution.\n\nOUTPUT RULES:\n- Be extremely CONCISE.\n- Use bullet points for steps or lists.\n- Avoid unnecessary fluff.\n- Directly answer the question.";
+					let systemPrompt = "You are GlueX, an intelligent and concise coding assistant inside VS Code. \n\nCAPABILITIES:\n- You see the **LIST** of filenames in the current workspace.\n- You see the **CONTENT** of the **ACTIVE FILE ONLY**.\n- You CANNOT read the content of other files automatically.\n\nPROCESS:\n1. ANALYZE the user's request.\n2. CHECK the provided [WORKSPACE FILE LIST] to see if the file exists.\n3. IF the user asks to read a file that is NOT the active file, ASK THEM TO OPEN IT so you can see the content.\n4. DO NOT hallucinate file content.\n\nOUTPUT RULES:\n- Be extremely CONCISE.\n- Use bullet points.\n- No fluff.";
 					if (contextMsg) {
-						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nI have provided you with a list of files in the current workspace above [WORKSPACE FILE LIST] and the content of the active file. Use this context to answer the user's request. If the user asks what is in the folder, list the files from [WORKSPACE FILE LIST].";
+						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nI have provided you with a list of files in the current workspace above [WORKSPACE FILE LIST] and the content of the active file (if any). Use this context to answer. If the user asks what is in the folder, list the files from [WORKSPACE FILE LIST].";
 						log("Context injected into System Prompt. Size: " + contextMsg.length);
 					}
 					ollamaMessages.push({ role: "system", content: systemPrompt });
