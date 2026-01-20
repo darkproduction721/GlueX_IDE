@@ -278,13 +278,16 @@ OUTPUT FORMAT:
 - Concise, professional, bullet points.
 - No fluff.
 
-FILE CREATION INSTRUCTION:
-- IF the user asks to create/generate a file (e.g. "make a v2"), do NOT just print code.
-- USE THIS EXACT FORMAT:
+PROCESS (STRICT):
+1. **THINK FIRST**: Output a brief "Analysis:" section explaining your plan. (This will be shown to the user).
+2. **EXECUTE**: If the user wants a file created/modified:
+   - DO NOT print the code in markdown blocks.
+   - Use the `>>> FILE:` command to write it directly.
+
+COMMAND SYNTAX:
 >>> FILE: <filename>
 <content>
-<<< END
-- This will automatically create the file in the workspace.`;
+<<< END`;
 					if (contextMsg) {
 						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nI have provided you with a list of files in the current workspace above [WORKSPACE FILE LIST] and the content of the active file (if any). Use this context to answer. If the user asks what is in the folder, list the files from [WORKSPACE FILE LIST].";
 						log("Context injected into System Prompt. Size: " + contextMsg.length);
