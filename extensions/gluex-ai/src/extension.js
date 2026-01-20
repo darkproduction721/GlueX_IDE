@@ -261,7 +261,30 @@ async function activate(context) {
 					const ollamaMessages = [];
 
 					// System Prompt / Context Injection
-					let systemPrompt = "You are GlueX, an intelligent and concise coding assistant inside VS Code. \n\nCAPABILITIES:\n- You see the **LIST** of filenames in the current workspace.\n- You see the **CONTENT** of the **ACTIVE FILE ONLY**.\n- You CANNOT read the content of other files automatically.\n\nPROCESS:\n1. ANALYZE the user's request.\n2. CHECK the provided [WORKSPACE FILE LIST] to see if the file exists.\n3. IF the user asks to read a file that is NOT the active file, ASK THEM TO OPEN IT so you can see the content.\n4. DO NOT hallucinate file content.\n\nOUTPUT RULES:\n- Be extremely CONCISE.\n- Use bullet points.\n- No fluff.";
+					let systemPrompt = `You are GlueX, an expert developer assistant.
+
+RULES:
+1. NO DISCLAIMERS. Never say "As an AI", "I am a text-based model", etc. Just answer.
+2. CONTEXT AWARENESS: You see a [WORKSPACE FILE LIST] below. Use it.
+3. IF responding to "read my files" or "what is in my project":
+   - Summarize the file types/structure from the list.
+   - Do NOT say "I cannot interact". You SEE the list.
+   - ASK the user which specific file to analyze (reminding them to open it).
+4. IF asked to read a specific file:
+   - If it is the [ACTIVE FILE], analyze it.
+   - If not, ask the user to OPEN it first.
+
+OUTPUT FORMAT:
+- Concise, professional, bullet points.
+- No fluff.
+
+FILE CREATION INSTRUCTION:
+- IF the user asks to create/generate a file (e.g. "make a v2"), do NOT just print code.
+- USE THIS EXACT FORMAT:
+>>> FILE: <filename>
+<content>
+<<< END
+- This will automatically create the file in the workspace.`;
 					if (contextMsg) {
 						systemPrompt += "\n\nCONTEXT INFORMATION:\n" + contextMsg + "\n\nI have provided you with a list of files in the current workspace above [WORKSPACE FILE LIST] and the content of the active file (if any). Use this context to answer. If the user asks what is in the folder, list the files from [WORKSPACE FILE LIST].";
 						log("Context injected into System Prompt. Size: " + contextMsg.length);
@@ -316,20 +339,65 @@ async function activate(context) {
 						}, (res) => {
 							res.setEncoding("utf8");
 							let buffer = "";
+							let isGeneratingFile = false;
+							let fileGenContent = "";
+							let fileGenName = "";
 
 							res.on("data", (chunk) => {
 								buffer += chunk;
 								const lines = buffer.split("\n");
-								buffer = lines.pop();
+								buffer = lines.pop(); // Keep partial line
 
 								for (const line of lines) {
-									if (!line.trim()) {
-										continue;
-									}
+									if (!line.trim()) continue;
 									try {
 										const parsed = JSON.parse(line);
 										if (parsed.message && parsed.message.content) {
-											stream.markdown(parsed.message.content);
+											let content = parsed.message.content;
+
+											// CHECK FOR FILE START
+											if (!isGeneratingFile) {
+												if (content.includes(">>> FILE:")) {
+													isGeneratingFile = true;
+													const parts = content.split(">>> FILE:");
+													// Stream the part before the tag
+													if (parts[0]) stream.markdown(parts[0]);
+
+													// Parse filename (it might be in this chunk or next, but simplified assumption: same line)
+													// We need to handle cases where "filename" comes in next token.
+													// For robustness, let's assume the model outputs ">>> FILE: filename" in one go or we buffer.
+													// Simple parser: assume filename is trimmed result of part[1] or we capture it.
+													fileGenName = parts[1].trim();
+													fileGenContent = ""; // Reset content
+													continue; // Don't stream this chunk
+												}
+											}
+
+											// CHECK FOR FILE END
+											if (isGeneratingFile) {
+												if (content.includes("<<< END")) {
+													const parts = content.split("<<< END");
+													fileGenContent += parts[0];
+													isGeneratingFile = false;
+
+													// WRITE FILE
+													try {
+														const fullPath = path.join(rootPath || "", fileGenName);
+														fs.writeFileSync(fullPath, fileGenContent);
+														stream.markdown(`\n\n> **File Created:** [${fileGenName}](command:vscode.open?${encodeURIComponent(JSON.stringify(vscode.Uri.file(fullPath)))}) \n`);
+													} catch (err) {
+														stream.markdown(`\n> *Error creating file: ${err.message}*`);
+													}
+
+													if (parts[1]) stream.markdown(parts[1]); // Stream remainder
+												} else {
+													// BUFFER CONTENT (Suppressed)
+													fileGenContent += content;
+												}
+											} else {
+												// NORMAL STREAMING
+												stream.markdown(content);
+											}
 										}
 										if (parsed.error) {
 											stream.markdown(`\n*Ollama Error: ${parsed.error}*`);
